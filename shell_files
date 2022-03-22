@@ -1,0 +1,173 @@
+nano drop_tables.sh
+#!/bin/sh
+#export LD_LIBRARY_PATH=/usr/lib/oracle/12.1/client64/lib
+sqlplus64 "hnvo/07086404@(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(Host=oracle.scs.ryerson.ca)(Port=1521))(CONNECT_DATA=(SID=orcl)))" <<EOF
+DROP TABLE registered CASCADE CONSTRAINTS;
+DROP TABLE transactions CASCADE CONSTRAINTS;
+DROP TABLE customers CASCADE CONSTRAINTS;
+DROP TABLE inventory CASCADE CONSTRAINTS;
+DROP TABLE Manager CASCADE CONSTRAINTS;
+DROP TABLE Cashier CASCADE CONSTRAINTS;
+DROP TABLE Stocker CASCADE CONSTRAINTS;
+DROP TABLE Employee CASCADE CONSTRAINTS;
+exit;
+EOF
+
+nano create_tables.sh
+#!/bin/sh
+#export LD_LIBRARY_PATH=/usr/lib/oracle/12.1/client64/lib
+sqlplus64 "hnvo/07086404@(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(Host=oracle.scs.ryerson.ca)(Port=1521))(CONNECT_DATA=(SID=orcl)))" <<EOF
+CREATE TABLE customers(
+	CustomerID NUMBER,
+	CustomerName VARCHAR(25),
+	Membership NUMBER(1),
+	PRIMARY KEY(CustomerID)
+);
+CREATE TABLE registered(
+    	CustomerID NUMBER,
+	MemberID NUMBER,
+    	EMail VARCHAR2(25),
+    	Phone NUMBER UNIQUE,
+    	Address VARCHAR2(25) NOT NULL,
+	PRIMARY KEY(CustomerID,MemberID),
+	FOREIGN KEY(CustomerID) REFERENCES customers (CustomerID)
+);
+CREATE TABLE inventory(
+    	ProductID NUMBER,
+    	ProductName VARCHAR2(25) NOT NULL,
+    	Quantity NUMBER NOT NULL,
+    	Price NUMBER NOT NULL,
+    	Weight NUMBER,    
+    	Department VARCHAR2(25) NOT NULL,    
+    	PRIMARY KEY(ProductID)
+);
+CREATE TABLE transactions(
+    	CustomerID NUMBER,
+    	TransactionID NUMBER,
+    	Total NUMBER NOT NULL,
+    	Products VARCHAR2(255),
+    	PRIMARY KEY(CustomerID,TransactionID),
+	FOREIGN KEY(CustomerID) REFERENCES customers (CustomerID)
+); 
+
+CREATE TABLE Employee(
+    	EmployeeID NUMBER,
+    	EmployeeName VARCHAR2(25),
+    	SIN NUMBER UNIQUE NOT NULL,
+    	Schedule_Hours VARCHAR(25) NOT NULL,
+    	PAYRATE NUMBER NOT NULL,
+    	Address VARCHAR2(25) NOT NULL,
+    	PRIMARY KEY(EmployeeID,EmployeeName)
+);
+CREATE TABLE Manager(
+	EmployeeID NUMBER,
+    	Name VARCHAR2(25),
+    	PRIMARY KEY(EmployeeID,Name),
+	FOREIGN KEY(EmployeeID,Name) REFERENCES Employee(EmployeeID,EmployeeName)
+);
+CREATE TABLE Cashier(
+	EmployeeID NUMBER,
+    	Name VARCHAR2(25),
+    	PRIMARY KEY(EmployeeID,Name),
+	FOREIGN KEY(EmployeeID,Name) REFERENCES Employee(EmployeeID,EmployeeName)
+);
+CREATE TABLE Stocker(
+    	EmployeeID NUMBER,
+	Name VARCHAR2(25),
+    	PRIMARY KEY(EmployeeID,Name),
+	FOREIGN KEY(EmployeeID,Name) REFERENCES Employee(EmployeeID,EmployeeName)
+);
+exit;
+EOF
+
+nano populate_tables.sh
+#!/bin/sh
+#export LD_LIBRARY_PATH=/usr/lib/oracle/12.1/client64/lib
+sqlplus64 "hnvo/07086404@(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(Host=oracle.scs.ryerson.ca)(Port=1521))(CONNECT_DATA=(SID=orcl)))" <<EOF
+INSERT INTO customers VALUES (1,'Hayaan',1);
+INSERT INTO customers VALUES (2,'Julian',1);
+INSERT INTO customers VALUES (3,'Hoang',1);
+INSERT INTO customers VALUES (4,'Hoang Vo',0);
+INSERT INTO customers VALUES (69,'Deez Nutz',0);
+INSERT INTO customers VALUES (5,'Person1',1);
+INSERT INTO customers VALUES (6,'Person2',1);
+INSERT INTO customers VALUES (7,'Person3',1);
+INSERT INTO customers VALUES (8,'Person4',1);
+INSERT INTO customers VALUES (9,'Person5',1);
+
+INSERT INTO registered VALUES (1,1,'hayaan@gmail.com',911,'?');
+INSERT INTO registered VALUES (2,2,'julian@gmail.com',912,'?');
+INSERT INTO registered VALUES (3,69,'hoang@gmail.com',913,'?');
+INSERT INTO registered VALUES (5,3,'p1@gmail.com',914,'?');
+INSERT INTO registered VALUES (6,4,'p2@gmail.com',915,'?');
+INSERT INTO registered VALUES (7,5,'p3@gmail.com',916,'?');
+INSERT INTO registered VALUES (8,6,'p4@gmail.com',917,'?');
+INSERT INTO registered VALUES (9,7,'p5@gmail.com',918,'?');
+
+INSERT INTO inventory VALUES(1,'Apples',69,1.99,66.123,'Produce');
+INSERT INTO inventory VALUES(2,'Oranges',69,7.99,43.123,'Produce');
+INSERT INTO inventory VALUES(3,'Mangos',69,10.99,89.123,'Produce');
+INSERT INTO inventory VALUES(4,'Bananas',69,2.99,77.123,'Produce');
+
+INSERT INTO transactions VALUES(4,1190283,78.97,'List of stuff');
+
+INSERT INTO Employee VALUES (1,'Hayaan',696969,'Full-Time,8 Hours',15,'?');
+INSERT INTO Employee VALUES (3,'Hoang',66669,'Full-Time,8 Hours',15,'?');
+INSERT INTO Employee VALUES (5,'Julian',69669,'Full-Time,8 Hours',15,'?');
+INSERT INTO Employee VALUES (9,'Hoang Vo',6966969,'Full-Time,8 Hours',15,'?');
+INSERT INTO Employee VALUES (69,'Deez',6696969,'Full-Time,8 Hours',15,'?');
+
+INSERT INTO Manager VALUES (1,'Hayaan');
+INSERT INTO Manager VALUES (3,'Hoang');
+INSERT INTO Manager VALUES (5,'Julian');
+
+INSERT INTO Cashier VALUES (9,'Hoang Vo');
+
+INSERT INTO Stocker VALUES (69,'Deez');
+exit;
+EOF
+
+nano queries.sh
+#!/bin/sh
+#export LD_LIBRARY_PATH=/usr/lib/oracle/12.1/client64/lib
+sqlplus64 "hnvo/07086404@(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(Host=oracle.scs.ryerson.ca)(Port=1521))(CONNECT_DATA=(SID=orcl)))" <<EOF
+SELECT * FROM customers;
+SELECT * FROM registered;
+SELECT * FROM Employee;
+SELECT * FROM Manager;
+SELECT * FROM Cashier;
+SELECT * FROM Stocker;
+
+SELECT * FROM customers WHERE CustomerName = 'Hoang Vo';
+SELECT * FROM registered WHERE Address = '?';
+SELECT MemberID, CustomerID FROM registered;
+SELECT * FROM registered WHERE MemberID = 1;
+SELECT * FROM Employee WHERE EmployeeID = 1;
+SELECT * FROM Employee WHERE EmployeeID <= 4;
+
+SELECT customers.CustomerName, customers.CustomerID, registered.MemberID FROM customers, registered WHERE (customers.CustomerID = registered.CustomerID) AND registered.MemberID >0;
+
+SELECT customers.CustomerName, customers.CustomerID, registered.MemberID FROM customers, registered WHERE (customers.CustomerID = registered.CustomerID) AND registered.MemberID <6;
+
+SELECT customers.CustomerName, registered.MemberID FROM customers, registered WHERE (customers.CustomerID = registered.CustomerID) AND registered.MemberID <6 ORDER BY CustomerName DESC; 
+
+SELECT customers.CustomerName, customers.CustomerID FROM customers WHERE (Membership = 0) ORDER BY CustomerID DESC;
+
+SELECT ProductName,Weight,Price FROM inventory WHERE (Quantity > 0) AND (Weight <= 67.69) ORDER BY Weight DESC;
+
+SELECT Employee.EmployeeName, Employee.EmployeeID, Employee.PAYRATE FROM Employee, Manager WHERE (Employee.EmployeeName = Manager.Name) ORDER BY Manager.Name DESC;
+
+CREATE VIEW Not_Registered AS (SELECT customers.CustomerName, customers.CustomerID FROM customers WHERE (Membership = 0) ORDER BY CustomerID DESC);
+SELECT * FROM Not_Registered;
+
+CREATE VIEW Cheap_Products AS (SELECT * FROM inventory WHERE Price <5.99);
+SELECT * FROM Cheap_Products;
+
+CREATE VIEW  Active_Managers AS (SELECT Employee.EmployeeName, Employee.EmployeeID, Employee.PAYRATE FROM Employee, Manager WHERE (Employee.EmployeeName = Manager.Name) ORDER BY Manager.Name DESC);
+SELECT * FROM Active_Managers;
+
+SELECT customers.CustomerID, transactions.TransactionID FROM customers INNER JOIN transactions ON customers.CustomerID = transactions.CustomerID;
+
+SELECT * FROM registered FULL JOIN transactions ON registered.CustomerID = transactions.CustomerID; 
+exit;
+EOF

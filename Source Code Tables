@@ -1,0 +1,60 @@
+CREATE TABLE customers(
+	CustomerID NUMBER,
+	CustomerName VARCHAR(25),
+	Membership NUMBER(1),
+	PRIMARY KEY(CustomerID)
+);
+CREATE TABLE registered(
+    	CustomerID NUMBER,
+	MemberID NUMBER,
+    	EMail VARCHAR2(25),
+    	Phone NUMBER UNIQUE,
+    	Address VARCHAR2(25) NOT NULL,
+	PRIMARY KEY(CustomerID,MemberID),
+	FOREIGN KEY(CustomerID) REFERENCES customers (CustomerID)
+);
+CREATE TABLE inventory(
+    	ProductID NUMBER,
+    	ProductName VARCHAR2(25) NOT NULL,
+    	Quantity NUMBER NOT NULL,
+    	Price NUMBER NOT NULL,
+    	Weight NUMBER,    
+    	Department VARCHAR2(25) NOT NULL,    
+    	PRIMARY KEY(ProductID)
+);
+CREATE TABLE transactions(
+    	CustomerID NUMBER,
+    	TransactionID NUMBER,
+    	Total NUMBER NOT NULL,
+    	Products VARCHAR2(255),
+    	PRIMARY KEY(CustomerID,TransactionID),
+	FOREIGN KEY(CustomerID) REFERENCES customers (CustomerID)
+); 
+
+CREATE TABLE Employee(
+    	EmployeeID NUMBER,
+    	EmployeeName VARCHAR2(25),
+    	SIN NUMBER UNIQUE NOT NULL,
+    	Schedule_Hours VARCHAR(25) NOT NULL,
+    	PAYRATE NUMBER NOT NULL,
+    	Address VARCHAR2(25) NOT NULL,
+    	PRIMARY KEY(EmployeeID,EmployeeName)
+);
+CREATE TABLE Manager(
+	EmployeeID NUMBER,
+    	Name VARCHAR2(25),
+    	PRIMARY KEY(EmployeeID,Name),
+	FOREIGN KEY(EmployeeID,Name) REFERENCES Employee(EmployeeID,EmployeeName)
+);
+CREATE TABLE Cashier(
+	EmployeeID NUMBER,
+    	Name VARCHAR2(25),
+    	PRIMARY KEY(EmployeeID,Name),
+	FOREIGN KEY(EmployeeID,Name) REFERENCES Employee(EmployeeID,EmployeeName)
+);
+CREATE TABLE Stocker(
+    	EmployeeID NUMBER,
+	Name VARCHAR2(25),
+    	PRIMARY KEY(EmployeeID,Name),
+	FOREIGN KEY(EmployeeID,Name) REFERENCES Employee(EmployeeID,EmployeeName)
+);

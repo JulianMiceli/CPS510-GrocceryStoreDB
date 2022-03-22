@@ -1,0 +1,51 @@
+SELECT * FROM customers -> σ(customers)
+SELECT * FROM registered -> σ(registered)
+SELECT * FROM employee -> σ(Employee)
+SELECT * FROM Manager -> σ(Manager)
+SELECT * FROM Cashier -> σ(Cashier)
+SELECT * FROM Stocker -> σ(Stocker)
+SELECT * FROM inventory -> σ(inventory)
+SELECT * FROM transactions -> σ(transactions)
+
+SELECT * FROM customers WHERE CustomerName = 'Hoang Vo' -> σ (CustomerName = 'Hoang Vo'(Customers))
+SELECT * FROM registered WHERE Address = '?' -> σ (Address = '?'(registered))
+SELECT * FROM registered WHERE MemberID = 1 -> σ(MemberID = 4(registered))
+SELECT * FROM Employee WHERE EmployeeID = 1 -> σ(EmployeeID = 1(Employee))
+SELECT * FROM Employee WHERE EmployeeID <= 4 -> σ(EmployeeID <= 4(Employee))
+SELECT MemberID, CustomerID FROM registered -> (<MemberID>,<CustomerID>(registered))
+
+SELECT customers.CustomerName, customers.CustomerID, registered.MemberID FROM customers, registered WHERE (customers.CustomerID = registered.CustomerID) AND registered.MemberID >0;
+-> (<CustomerName>,<CustomerID>,<MemberID>(σ(customers U registered))
+
+SELECT customers.CustomerName, customers.CustomerID, registered.MemberID FROM customers, registered WHERE (customers.CustomerID = registered.CustomerID) AND registered.MemberID <6;
+-> (<CustomerName>,<CustomerID>,<MemberID>(σ(MemberID < 6(customers U registered))))
+
+SELECT customers.CustomerName, registered.MemberID FROM customers, registered WHERE (customers.CustomerID = registered.CustomerID) AND registered.MemberID <6 ORDER BY CustomerName DESC; 
+-> (<CustomerName>,<CustomerID>,<MemberID>(σ(DESC(MemberID < 6(customers U registered)))))
+
+SELECT customers.CustomerName, customers.CustomerID FROM customers WHERE (Membership = 0) ORDER BY CustomerID DESC;
+-> (<CustomerName>,<CustomerID>(σ(DESC(Membership = 0(customers)))))
+
+SELECT ProductName,Weight,Price FROM inventory WHERE (Quantity > 0) AND (Weight <= 67.69) ORDER BY Weight DESC;
+-> (<ProductName>,<Weight>,<Price>(σ(DESC(Weight <= 67.69(Quantity >0(inventory)))))
+
+SELECT Employee.EmployeeName, Employee.EmployeeID, Employee.PAYRATE FROM Employee, Manager WHERE (Employee.EmployeeName = Manager.Name) ORDER BY Manager.Name DESC;
+-> (<EmployeeName>,<EmployeeID>,<PAYRATE>(σ(DESC(Employee U Manager))))
+
+CREATE VIEW Not_Registered AS (SELECT customers.CustomerName, customers.CustomerID FROM customers WHERE (Membership = 0) ORDER BY CustomerID DESC);
+SELECT * FROM Not_Registered;
+-> customers - registered
+
+CREATE VIEW Cheap_Products AS (SELECT * FROM inventory WHERE Price <5.99);
+SELECT * FROM Cheap_Products;
+-> σ(PRICE<5.99(inventory)) - inventory
+
+CREATE VIEW  Active_Managers AS (SELECT Employee.EmployeeName, Employee.EmployeeID, Employee.PAYRATE FROM Employee, Manager WHERE (Employee.EmployeeName = Manager.Name) ORDER BY Manager.Name DESC);
+SELECT * FROM Active_Managers;
+-> (Employees- Cashiers) + (Employees - Stockers)
+
+SELECT customers.CustomerID, transactions.TransactionID FROM customers INNER JOIN transactions ON customers.CustomerID = transactions.CustomerID;
+-> customers intersect transactions
+
+SELECT * FROM registered FULL JOIN transactions ON registered.CustomerID = transactions.CustomerID; 
+-> registered U transactions
